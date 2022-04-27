@@ -26,7 +26,7 @@ data_2020 <- read_excel("inputs/data/WHR20_DataForFigure2.1_2020.xls")
 ListofcountriesExcluded <- rbind(subset(data_2021,!(`Country name`%in%data_2020$`Country name`)) %>% select(`Country name`), subset(data_2020,!(`Country name`%in%data_2021$`Country name`)) %>% select(`Country name`))
 ListofcountriesExcluded
 
-#======= Multiple Linear Regression=========
+#======= Multiple Linear Regression =========
 
 Model2020 <- lm(`Happiness Score - 2020` ~ `Logged GDP per capita - 2020` + `Social Support - 2020` +
                   `Healthy Life Expectancy - 2020`+`Freedom to make life choices - 2020` + 
@@ -35,7 +35,7 @@ Model2020 <- lm(`Happiness Score - 2020` ~ `Logged GDP per capita - 2020` + `Soc
 
 names(Model2020$coefficients) <- c('(Intercept)','Logged GDP per capita','Social Support','Healthy Life Expectancy', 'Freedom to make life choices', 'Generocity', 'Perceptions of Corruption')
 
-summary(Model2020)
+
 
 
 Model2021 <- lm(`Happiness Score - 2021` ~ `Logged GDP per capita - 2021` + `Social Support - 2021` +
@@ -44,7 +44,7 @@ Model2021 <- lm(`Happiness Score - 2021` ~ `Logged GDP per capita - 2021` + `Soc
                 data = data)
 names(Model2021$coefficients) <- c('(Intercept)','Logged GDP per capita','Social Support','Healthy Life Expectancy', 'Freedom to make life choices', 'Generocity', 'Perceptions of Corruption')
 
-summary(Model2021)
+
 
 
 

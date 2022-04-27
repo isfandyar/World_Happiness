@@ -7,16 +7,14 @@
 
 
 #### Workspace setup ####
-library(haven)
 library(tidyverse)
 library(readxl)
-library(stringr)
 library(dplyr)
 library(ggplot2)
-
+library(rworldmap)
 
 #### Read in data ####
-data <- read.csv("outputs/data/dataset.csv")
+data <- read_excel("outputs/data/dataset.xlsx")
 
 #========= Happiness Score by Regions ===========
 
@@ -90,7 +88,7 @@ data %>% ggplot(aes(`Happiness Score - 2021`, `Freedom to make life choices - 20
   scale_color_brewer(palette="Spectral")+ggtitle("Effect of Freedom to make life choices on Happiness (2021)") + theme_classic()
 
 #======== Percentage of countries with increased happiness between 2020 and 2021 ==========
-
+#### Got inspiration of code from https://r-graph-gallery.com/128-ring-or-donut-plot.html
 piechartDF <- data %>% select(Country, `Happiness Score - 2020`, `Happiness Score - 2021`) %>%
   mutate(increase_in_2021 = ifelse(`Happiness Score - 2021`>`Happiness Score - 2020`, 'Increased', 'Not Increased')) %>% 
   count(increase_in_2021)
@@ -113,4 +111,15 @@ ggplot(piechartDF, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=increase_in_20
   xlim(c(2, 4)) +
   theme_void() +
   theme(legend.position = "none", plot.title = element_text(vjust = -8)) + labs(title="Percentage of countries with increased happiness between 2020 and 2021")
+#========= World Map for Happiness - 2020 =======
+
+mapdata <- data %>% select(Country, `Happiness Score - 2020`, `Happiness Score - 2021`)
+jcm <- joinCountryData2Map(mapdata, joinCode="NAME", nameJoinColumn="Country")
+mapCountryData(jcm, nameColumnToPlot='Happiness Score - 2020', mapTitle="World Map for Happiness - 2020",colourPalette="negpos8")
+
+#========= World Map for Happiness - 2021 =======
+
+mapCountryData(jcm, nameColumnToPlot='Happiness Score - 2021', mapTitle="World Map for Happiness - 2021",colourPalette="negpos8")
+
+
 

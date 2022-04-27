@@ -6,11 +6,11 @@
 # License: MIT
 
 #### Workspace setup ####
-library(haven)
 library(tidyverse)
 library(readxl)
 library(stringr)
 library(dplyr)
+library(xlsx)
 # Read in the raw data.
 
 data_2021 <- read_excel("inputs/data/Appendix_2_Data_for_Figure_2.1_2021.xls")
@@ -53,7 +53,6 @@ names(data) <- c('Country',
 
 
 #Save data in a new file
-write_csv(data, "outputs/data/dataset.csv")
-
+write.xlsx(data, file = "outputs/data/dataset.xlsx", append = FALSE)
 
 

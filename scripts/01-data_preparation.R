@@ -54,5 +54,5 @@ names(data) <- c('Country',
 
 #Save data in a new file
 write.xlsx(data, file = "outputs/data/dataset.xlsx", append = FALSE)
-
+write.csv(data, 'outputs/data/dataset.csv')
 

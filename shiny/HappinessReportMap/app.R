@@ -3,15 +3,15 @@ library(leaflet)
 library(dplyr)
 library(readxl)
 library(rworldmap)
-
+library(readr)
 #### Read in data ####
-data <- read_excel("outputs/data/dataset.xlsx")
+
+data<- read_csv('https://raw.githubusercontent.com/isfandyar/happinessReport/main/outputs/data/dataset.csv')
 
 
-
-
+######################
 ui <- fluidPage(
-    titlePanel("World Happiness"),
+    titlePanel("World Happiness Report Data Visualized"),
     
     actionButton("year2020", "Year 2020"),
     actionButton("year2021", "Year 2021"),

@@ -1,5 +1,5 @@
 #### Preamble ####
-# Purpose: Prepare the World Happiness Report data from 2020-2022
+# Purpose: Prepare the World Happiness Report data from 2020-2021
 # Author: Isfandyar Virani
 # Data: 25 April 2022
 # Contact: isfandyar.virani@mail.utoronto.ca
@@ -10,7 +10,7 @@ library(haven)
 library(tidyverse)
 library(readxl)
 library(stringr)
-
+library(dplyr)
 # Read in the raw data.
 
 data_2021 <- read_excel("inputs/data/Appendix_2_Data_for_Figure_2.1_2021.xls")

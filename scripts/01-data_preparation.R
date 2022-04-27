@@ -40,14 +40,14 @@ names(data) <- c('Country',
                  'Social Support - 2020',
                  'Healthy Life Expectancy - 2020',
                  'Freedom to make life choices - 2020',
-                 'Generocity - 2020',
+                 'Generosity - 2020',
                  'Perceptions of Corruption - 2020',
                  'Happiness Score - 2021',
                  'Logged GDP per capita - 2021',
                  'Social Support - 2021',
                  'Healthy Life Expectancy - 2021',
                  'Freedom to make life choices - 2021',
-                 'Generocity - 2021',
+                 'Generosity - 2021',
                  'Perceptions of Corruption - 2021'
                  )
 

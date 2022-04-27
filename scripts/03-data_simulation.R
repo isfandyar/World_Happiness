@@ -21,14 +21,14 @@ data_simulation <-  tibble(
   `Social Support - 2020` =   runif(length(countries), min=0, max=1),
   `Healthy Life Expectancy - 2020` =runif(length(countries), min=48, max=77) ,
   `Freedom to make life choices - 2020` =runif(length(countries), min=0, max=1) ,
-  `Generocity - 2020`= runif(length(countries), min=-1, max=1),
+  `Generosity - 2020`= runif(length(countries), min=-1, max=1),
   `Perceptions of Corruption - 2020` = runif(length(countries), min=0, max=1),
   `Happiness Score - 2021` = runif(length(countries), min=0, max=8),
   `Logged GDP per capita - 2021`= runif(length(countries), min=6, max=12),
   `Social Support - 2021` =   runif(length(countries), min=0, max=1),
   `Healthy Life Expectancy - 2021` =runif(length(countries), min=48, max=77) ,
   `Freedom to make life choices - 2021` =runif(length(countries), min=0, max=1) ,
-  `Generocity - 2021`= runif(length(countries), min=-1, max=1),
+  `Generosity - 2021`= runif(length(countries), min=-1, max=1),
   `Perceptions of Corruption - 2021` = runif(length(countries), min=0, max=1)
   )
 

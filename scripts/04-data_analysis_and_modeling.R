@@ -30,19 +30,19 @@ ListofcountriesExcluded
 
 Model2020 <- lm(`Happiness Score - 2020` ~ `Logged GDP per capita - 2020` + `Social Support - 2020` +
                   `Healthy Life Expectancy - 2020`+`Freedom to make life choices - 2020` + 
-                  `Generocity - 2020`+ `Perceptions of Corruption - 2020`,
+                  `Generosity - 2020`+ `Perceptions of Corruption - 2020`,
      data = data)
 
-names(Model2020$coefficients) <- c('(Intercept)','Logged GDP per capita','Social Support','Healthy Life Expectancy', 'Freedom to make life choices', 'Generocity', 'Perceptions of Corruption')
+names(Model2020$coefficients) <- c('(Intercept)','Logged GDP per capita','Social Support','Healthy Life Expectancy', 'Freedom to make life choices', 'Generosity', 'Perceptions of Corruption')
 
 
 
 
 Model2021 <- lm(`Happiness Score - 2021` ~ `Logged GDP per capita - 2021` + `Social Support - 2021` +
                   `Healthy Life Expectancy - 2021`+`Freedom to make life choices - 2021` + 
-                  `Generocity - 2021`+ `Perceptions of Corruption - 2021`,
+                  `Generosity - 2021`+ `Perceptions of Corruption - 2021`,
                 data = data)
-names(Model2021$coefficients) <- c('(Intercept)','Logged GDP per capita','Social Support','Healthy Life Expectancy', 'Freedom to make life choices', 'Generocity', 'Perceptions of Corruption')
+names(Model2021$coefficients) <- c('(Intercept)','Logged GDP per capita','Social Support','Healthy Life Expectancy', 'Freedom to make life choices', 'Generosity', 'Perceptions of Corruption')
 
 
 

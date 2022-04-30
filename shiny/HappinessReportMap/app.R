@@ -13,8 +13,8 @@ data<- read_csv('https://raw.githubusercontent.com/isfandyar/happinessReport/mai
 ui <- fluidPage(
     titlePanel("World Happiness Report Data Visualized"),
     
-    actionButton("year2020", "Year 2020"),
-    actionButton("year2021", "Year 2021"),
+    actionButton("year2020", "Year 2019"),
+    actionButton("year2021", "Year 2020"),
     hr(),
     leafletOutput("mymap"))
 
@@ -23,6 +23,9 @@ jcm <- joinCountryData2Map(data, joinCode="NAME", nameJoinColumn="Country")
 
 ################# Interactive Plot ########################
 # Code from https://rstudio.github.io/leaflet/choropleths.html
+
+# Hosted on https://isfandyar-virani.shinyapps.io/happinessreportmap/
+
 
 mybins <- c(2.5,4.5,5,5.5,6.5,8)
 mypalette2020 <- colorBin( palette="YlOrBr", domain=jcm@data[["Happiness Score - 2020"]], na.color="transparent", bins=mybins)

@@ -5,7 +5,7 @@ account: isfandyar-virani
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 6186598
-bundleId: 5844128
+bundleId: 5855496
 url: https://isfandyar-virani.shinyapps.io/happinessreportmap/
-when: 1651088234.4384
-lastSyncTime: 1651088234.4384
+when: 1651346630.29382
+lastSyncTime: 1651346630.29483

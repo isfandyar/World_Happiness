@@ -33,8 +33,8 @@ Model2020 <- lm(`Happiness Score - 2020` ~ `Logged GDP per capita - 2020` + `Soc
                   `Generosity - 2020`+ `Perceptions of Corruption - 2020`,
      data = data)
 
-names(Model2020$coefficients) <- c('(Intercept)','Logged GDP per capita','Social Support','Healthy Life Expectancy', 'Freedom to make life choices', 'Generosity', 'Perceptions of Corruption')
 
+names(Model2020$coefficients) <- c('(Intercept)','Logged GDP per capita','Social Support','Healthy Life Expectancy', 'Freedom to make life choices', 'Generosity', 'Perceptions of Corruption')
 
 
 
@@ -48,7 +48,29 @@ names(Model2021$coefficients) <- c('(Intercept)','Logged GDP per capita','Social
 
 
 
-modelsummary(list(Model2020,
-                  Model2021),
+modelsummary(list("Model 1-1 - Year 2019" = Model2020,
+                  "Model 1-2 - Year 2020" = Model2021),
              fmt = 2,
-             title = "Explaining happiness of countries from 2020 and 2021 World Hapiness Report Dataset")
+             title = "Explaining happiness of countries from variables of interest (2019 & 2020)",
+             stars = TRUE,  bold = T)
+
+
+
+#=============
+  
+Model2_2020 <- lm(`Happiness Score - 2020` ~ Region,
+                 data = data)
+
+summary(Model2_2020)
+
+Model2_2021 <- lm(`Happiness Score - 2021` ~ Region,
+                 data = data)
+summary(Model2_2021)
+
+modelsummary(list("Model 2-1 - Year 2019" = Model2_2020,
+                  "Model 2-2 - Year 2020" = Model2_2021),
+             fmt = 2,
+             title = "Explaining happiness of countries from regions (2019 & 2020)",
+             stars = TRUE,  bold = T)
+
+

@@ -1,0 +1,450 @@
+---
+title: "Which countries are happier during the COVID-19 pandemic? Are western countries happier compared to developing countries?"
+author: "Isfandyar Virani"
+date: "27/04/2022"
+subtitle: "Analysis of data from the World Happiness Report of 2020 & 2021"
+abstract: "This paper examines how countries ranked in happiness in the years 2019 & 2020 and what factors determine a country’s happiness, by analyzing the 2020 & 2021 World Happiness Report datasets. The analysis was able to determine that western countries perform better in happiness scaling compared to developing countries. This is due to factors such as GDP per capita, social support,  healthy life expectancy, freedom to make life choices, and perceptions of corruption. This is an important finding as it can help policymakers globally to take appropriate actions to increase happiness in their countries. \\par \\textbf{Keywords:} COVID-19, World Happiness, GDP, Healthy Life Expectancy, Social Support, Freedom, Generosity, Corruption"
+thanks: "Code and data are available at: https://github.com/isfandyar/World_Happiness"
+output:
+  bookdown::pdf_document2
+toc: TRUE
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+#### Workspace setup ####
+library(tidyverse)
+library(readxl)
+library(stringr)
+library(dplyr)
+library(modelsummary)
+library(ggplot2)
+library(rworldmap)
+library(vtable)
+library(grid)
+library(gridExtra)
+library(corrplot)
+library(tidyr)
+library(kableExtra)
+
+#### Read in data ####
+data <- read_excel("../../outputs/data/dataset.xlsx")
+```
+\newpage
+
+# Introduction
+
+Happiness is very important as it has major benefits to our health (both physical and mental), and can improve productivity at work. 13% of the world has increased mental health issues in the last decade, with the COVID-19 pandemic increasing anxiety and depression. However, our analysis shows that even with increased mental health issues during COVID-19, happiness has increased globally during the pandemic, with 54% of the countries reporting increased happiness during the pandemic (2020) compared to the year prior (2019). 
+
+In this report, our goal is to examine the World Happiness Report dataset [@worldhappinessreport20] & [@worldhappinessreport21], to determine what factors influence happiness, both pre-COVID and during the COVID-19 pandemic. This report can assist policy makers and global organizations such as United Nations to assist developing countries more effectively. 
+
+Our analysis showed that western countries perform better in happiness scaling compared to developing countries. This is due to factors such as GDP per capita, social support,  healthy life expectancy, freedom to make life choices, and perceptions of corruption. 
+
+# Data
+## Data Source
+
+To get better insights into what factors determine happiness for countries, I utilized the 2020 & 2021 World Happiness Report [@worldhappinessreport20] & [@worldhappinessreport21]. The raw datasets were Microsoft Excel files from World Happiness Report for the years 2020 and 2021 and were imported in R [@citeR] using package readxl [@wickham_bryan_2022]. 
+
+## Data Cleaning
+
+The two raw datasets from 2020 and 2021 were mostly pre-cleaned by the publisher. Using the R package tidyverse [@citetidyverse] and dplyr [@dplyr], I was able to clean and perform exploratory data analysis on the dataset. I merged the two datasets by Country. 
+
+Six countries were present in 2020 but not in the 2021 dataset or vice versa. Hence, they were dropped from our dataset. These countries were: North Macedonia, Trinidad and Tobago, Macedonia, Congo (Kinshasa), Central African Republic, and South Sudan    
+
+I decided to drop the following columns: ‘Standard error of ladder score’, 'upperwhisker', 'lowerwhisker', 'Ladder score in Dystopia', 'Explained by: Log GDP per capita', 'Explained by: Social support', 'Explained by: Healthy life expectancy', 'Explained by: Freedom to make life choices'. 'Explained by: Generosity', 'Explained by: Perceptions of corruption', and 'Dystopia + residual'. Then I renamed the remaining columns appropriately to distinguish between 2020 and 2021 data. Using the R package xlsx [@dragulescu_arendt_2020], an excel file of the clean dataset was produced.
+
+## Variables of Interest
+
+
+```{r tab1, warning=FALSE, fig.cap="World Happiness Report Summary Statistics - 2019", message = FALSE, echo=FALSE, fig.width=5, fig.height=5}
+
+sumtable1 <- data %>% mutate('Happiness Score' = `Happiness Score - 2020`, 
+                  'Logged GDP per capita' = `Logged GDP per capita - 2020`, 
+                  'Social Support' = `Social Support - 2020`, 
+                  'Healthy Life Expectancy' = `Healthy Life Expectancy - 2020`,
+                  'Freedom to make life choices' = `Freedom to make life choices - 2020`, 
+                  'Generosity' = `Generosity - 2020`,
+                  'Perceptions of Corruption' = `Perceptions of Corruption - 2020`) %>%
+  select(`Happiness Score`,`Logged GDP per capita`, `Social Support` , `Healthy Life Expectancy`,
+         `Freedom to make life choices`, `Generosity`, `Perceptions of Corruption`)
+sumtable(sumtable1, title = 'World Happiness Report Summary Statistics - 2019', out = 'kable') %>% kable_styling()
+```
+
+```{r tab2, warning=FALSE, fig.cap="World Happiness Report Summary Statistics - 2020", message = FALSE, echo=FALSE, fig.width=5, fig.height=5}
+sumtable2 <- data %>% mutate('Happiness Score' = `Happiness Score - 2021`, 
+                'Logged GDP per capita' = `Logged GDP per capita - 2021`, 
+                'Social Support' = `Social Support - 2021`, 
+                'Healthy Life Expectancy' = `Healthy Life Expectancy - 2021`,
+                'Freedom to make life choices' = `Freedom to make life choices - 2021`, 
+                'Generosity' = `Generosity - 2021`,
+                'Perceptions of Corruption' = `Perceptions of Corruption - 2021`) %>%
+  select(`Happiness Score`,`Logged GDP per capita`, `Social Support` , `Healthy Life Expectancy`,
+         `Freedom to make life choices`, `Generosity`, `Perceptions of Corruption`)
+sumtable(sumtable2, title = 'World Happiness Report Summary Statistics - 2020', out = 'kable') %>% kable_styling()
+```
+
+(Table \@ref(tab:tab1)) & (Table \@ref(tab:tab2)) contains a summary of the variables of interest using vtable [@vtable] and kableExtra [@kableExtra]. 
+From these tables, I observe the summary statistics of variables of interest such as Happiness Score, Logged GDP per capita, Social Support, Healthy Life Expectancy, Freedom to make choices, Generosity, and Perceptions of Corruption of countries in 2019 & 2020. I notice that the average Happiness Score went slightly up during the COVID-19 pandemic (the year 2020) compared to the year prior (2019). Also, other variables other than Generosity (remained the same) and Perceptions of Corruption (lowered slightly) went up.  
+
+## Happiness score
+In the raw datasets, the Happiness score (variable name ladder) was measured from Feb 28, 2020, and Feb 26, 2021 releases of the Gallup World Poll [@inc]. It is the national average response to the question of life evaluations. These measurements were conducted the year prior. Hence, the year 2020 World Happiness Report is showing the pre-pandemic happiness score from 2019, and the World Happiness Report of 2021 is showing the COVID-19 pandemic happiness score from the year 2020. 
+
+The English wording of the question is: *“Please imagine a ladder, with steps numbered from 0 at the
+bottom to 10 at the top. The top of the ladder represents the best possible life for you and the bottom of the ladder represents the worst possible life for you. On which step of the ladder would you say you personally feel you stand at this time?”*
+
+## GDP per capita
+The GDP per capita is from November 28, 2019, and October 14, 2020 update of the World Development Indicators [@the_world_bank_2022]. The GDP figures for Taiwan, Syria, Palestine, Venezuela, Djibouti and Yemen are from the Penn World Table 9.1 [@pwt].
+
+## Healthy Life Expectancy
+Healthy life expectancies at birth are based on the data taken from the World Health Organization’s (WHO) Global Health Observatory data repository [@gho_2019].
+
+## Social Support 
+Social support is the national average of the binary responses from the Gallup World Poll [@inc] question *“If you were in trouble, do you have relatives or friends you can count on to help you whenever you need them, or not?”*
+
+## Freedom 
+Freedom to make life choices is the national average of the responses from the Gallup World Poll [@inc] question *“Are you satisfied or dissatisfied with your freedom to choose what you do with your life?”*
+
+## Generosity
+Generosity is the residual of regressing the national average of response to the Gallup World Poll [@inc] question *“Have you donated money to a charity in the past month?”* on GDP per capita.
+
+## Perception of Corruption 
+Corruption Perception is measured by taking the national average of the survey responses of two questions from the Gallup World Poll [@inc].
+The questions are: *“Is corruption widespread throughout the government or not”* and *“Is corruption widespread within businesses or not?”*.
+In case the perception of government corruption is missing, then the perception of business corruption is used as the overall perception. 
+
+## Data Analysis and Visualization
+Using the R package tidyverse [@citetidyverse] and dplyr [@dplyr], I was able to perform exploratory data analysis. I used R package ggplot2 [@citeggplot2] to visualize the data for this paper. The map figure (Figure \@ref(fig:fig8)) & (Figure \@ref(fig:fig9)) was made using the R package rworldmap [@south_2016]. 
+
+# Model
+
+## Multiple Linear Regression
+In order to understand if there is a relationship between Happiness Score and other variables of interest (i.e, GDP per capita, healthy life expectancy, social support, freedom, generosity, and perception of corruption), I performed a multiple linear regression using R [@citeR].  The multiple linear regression models can help us investigate our quantitative data’s relationship and can help us perform exploratory data analysis. 
+
+I will be using four multiple linear regression models in this paper, two of them will explore the relationship between Happiness Score and our variables of interest (logged GDP per capita, social support, healthy life expectancy, freedom to make life choices, generosity, and perceptions of corruption) in the year 2019 and 2020, and the other two will be exploring the relationship between Happiness Score and Regions (Commonwealth of Independent States, East Asia, Latin America and the Caribbean, Middle East and North Africa, North America and ANZ, and South Asia) in the year 2019 and 2020. 
+
+$$Y_{1} = \beta_{0} + \beta_{1}X_{1} + \beta_{2}X_{2} + \beta_{3}X_{3} + \beta_{4}X_{4} + \beta_{5}X_{5} + \beta_{6}X_{6} + \epsilon$$
+
+In the first model, $Y_{1}$ is the Happiness Score, $X_{1}$ is the logged GDP per capita, $X_{2}$ is the social support, $X_{1}$ is the healthy life expectancy, $X_{1}$ is the freedom to make life choices, $X_{1}$ is the generosity, $X_{1}$ is the perception of corruption. $\beta_{0}$ represents the predicted value of $Y$ when $X$ is 0 and $\beta_{1}$ , $\beta_{2}$, $\beta_{3}$, $\beta_{4}$, $\beta_{5}$, and $\beta_{6}$ are the expected change to $Y$ when $X_{1}$, $X_{2}$, $X_{3}$, $X_{4}$, $X_{5}$, and $X_{6}$ increase. This model is repeated twice for the years 2019 and 2020. 
+
+
+$$Y_{1} = \beta_{0} + \beta_{1}X_{1} + \beta_{2}X_{2} + \beta_{3}X_{3} + \beta_{4}X_{4} + \beta_{5}X_{5} + \beta_{6}X_{6} + \beta_{7}X_{7} + \beta_{8}X_{8} + \beta_{9}X_{9} +\epsilon$$
+
+In the second model,  $Y_{1}$ is the Happiness Score, $X_{1}$ is the region Commonwealth of Independent States, $X_{2}$ is the region of East Asia, $X_{3}$ is the region Latin America and the Caribbean, $X_{4}$ is the region the Middle East and North Africa, $X_{5}$ is the region North America and ANZ, $X_{6}$ is the region South Asia, $X_{7}$ is the region Southeast Asia, $X_{8}$ is the region Sub-Saharan Africa, and $X_{9}$ is the region Western Europe. $\beta_{0}$ represents the predicted value of $Y$ when $X$ is 0 and $\beta_{1}$ , $\beta_{2}$, $\beta_{3}$, $\beta_{4}$, $\beta_{5}$, $\beta_{6}$, $\beta_{7}$, $\beta_{8}$, and $\beta_{9}$ are the expected change to $Y$ when $X_{1}$, $X_{2}$, $X_{3}$, $X_{4}$, $X_{5}$, $X_{6}$, $X_{7}$, $X_{8}$, and $X_{9}$ increase. This model is repeated twice for the years 2019 and 2020. 
+
+# Results
+
+Using the World Happiness Report data, I was able to observe the results visually using ggplot2 (@citeggplot2); aiding in the understanding of the results
+
+## Happiness Score by Regions
+
+(Figure \@ref(fig:fig1)) & (Figure \@ref(fig:fig2)) are boxplots created to look at different regions to see which regions have the highest Happiness Score.
+
+##  Happiness Score by Regions - Pre COVID-19 (2019)
+
+```{r fig1, warning=FALSE, fig.cap="Happiness Score by Regions (2019)", message = FALSE, echo=FALSE, fig.width=8, fig.height=5, out.width='70%', fig.align="center"}
+data%>%
+  ggplot(aes(`Happiness Score - 2020`,reorder(`Region`,`Happiness Score - 2020`),fill=`Region`)) +
+  geom_boxplot() + theme_classic() + theme(legend.position = "none", axis.title.x = element_blank(), axis.title.y = element_blank())+
+  ggtitle("Happiness Score by Regions (2019)")
+```
+From (Figure \@ref(fig:fig1)), in 2019, North America and ANZ (Australia & New Zealand) had the highest Happiness Score followed by Western Europe, Latin America and Caribbean, Central and Eastern Europe, East Asia, Southeast Asia, Commonwealth of Independent States, Middle East and North Africa, South Asia, and Sub-Saharan Africa.
+
+##  Happiness Score by Regions - During the COVID-19 Pandemic (2020)
+
+```{r fig2, warning=FALSE, fig.cap="Happiness Score by Regions (2020)", message = FALSE, echo=FALSE, fig.width=8, fig.height=5, out.width='70%', fig.align="center"}
+data%>%
+  ggplot(aes(`Happiness Score - 2021`,reorder(`Region`,`Happiness Score - 2021`),fill=`Region`))+
+  geom_boxplot()+theme_classic()+ theme(legend.position = "none",axis.title.x = element_blank(),axis.title.y = element_blank())+
+  ggtitle("Happiness Score by Regions (2020)")
+```
+
+From (Figure \@ref(fig:fig2)), in 2020, North America and ANZ (Australia & New Zealand) had the highest Happiness Score followed by Western Europe, Central and Eastern Europe, Latin America and Caribbean, East Asia, Commonwealth of Independent States, Southeast Asia, Middle East and North Africa, Sub-Saharan Africa and South Asia. 
+
+##  Differences between Happiness Scores in 2019 & 2020 by Region
+```{r tab3, warning=FALSE, message = FALSE, echo=FALSE, fig.width=5, fig.height=5}
+data %>% select(Region, `Happiness Score - 2020`, `Happiness Score - 2021`) %>% group_by(Region) %>%
+  summarise('Mean Happiness - 2019' = mean(`Happiness Score - 2020`), 
+            'Mean Happiness - 2020' = mean(`Happiness Score - 2021`),
+            'Difference' = mean(`Happiness Score - 2021`) - mean(`Happiness Score - 2020`)) %>% 
+  arrange(desc(`Difference`)) %>% kable(caption ="Differences between Happiness Scores in 2019 and 2020 by Region" ) %>% kable_styling()
+```  
+
+(Table \@ref(tab:tab3)) shows that Happiness scores went up during the pandemic (2020) in Central and Eastern Europe the most followed by the Commonwealth of Independent States, East Asia, Sub-Saharan Africa, Southeast Asia and Western Europe. However, during the pandemic, Latin America and the Caribbean had the highest decline in Happiness Scores followed by North America and ANZ, South Asia, and the Middle East and North Africa.
+
+```{r fig3, warning=FALSE, fig.cap="Percentage of countries with increased happiness between 2019 and 2020", message = FALSE, echo=FALSE, fig.width=5, fig.height=5, out.width='30%', fig.align="center"}
+#### Got inspiration of code from https://r-graph-gallery.com/128-ring-or-donut-plot.html
+piechartDF <- data %>% select(Country, `Happiness Score - 2020`, `Happiness Score - 2021`) %>%
+  mutate(increase_in_2021 = ifelse(`Happiness Score - 2021`>`Happiness Score - 2020`, 'Increased', 'Not Increased'))%>% dplyr::count(increase_in_2021)
+
+# Compute percentages
+piechartDF$fraction <- piechartDF$n / sum(piechartDF$n)
+
+# Compute the cumulative percentages (top of each rectangle)
+piechartDF$ymax <- cumsum(piechartDF$fraction)
+
+# Compute the bottom of each rectangle
+piechartDF$ymin <- c(0, head(piechartDF$ymax, n=-1))
+
+
+ggplot(piechartDF, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=increase_in_2021)) +
+  geom_rect() +
+  geom_text(x = 2, y = 0, label = paste0(round(piechartDF[1,]$fraction*100,0),'%'), size = 22)+
+  scale_fill_manual(values = c("#32a854", "#e0e0e0")) +
+  coord_polar(theta="y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  theme(legend.position = "none", plot.title = element_text(vjust = -8)) + labs(title="Countries with increased happiness during COVID-19")
+```
+
+
+(Figure \@ref(fig:fig3)) shows that more than half (54%) of the countries increased their happiness scores between 2019 and 2020. This figure was made using ggplot [@citeggplot2] package in R [@citeR], and the code was taken from [here](https://r-graph-gallery.com/128-ring-or-donut-plot.html)
+
+## Top Happiest Countries
+### Top countries - pre-COVID-19 (2019)
+```{r fig4, warning=FALSE, fig.cap="Top 20 Happiest Countries (2019)", message = FALSE, echo=FALSE, fig.width=10, fig.height=5, out.width='70%', fig.align="center"}
+data%>% arrange(desc(`Happiness Score - 2020`)) %>%
+  head(20) %>% ggplot(aes(`Happiness Score - 2020`,reorder(Country,`Happiness Score - 2020`),fill=`Region`)) +
+  geom_col() + geom_text(aes(label = `Happiness Score - 2020`), position=position_stack(vjust=0.5),color="black",size=3) +
+  theme_classic() + theme(axis.title.x = element_blank(),axis.title.y = element_blank()) +
+  scale_fill_brewer(palette = "Spectral") + ggtitle("Top 20 Happiest Countries (2019)") 
+```
+From (Figure \@ref(fig:fig4)), in the year 2019, 13/20 (65%) of the countries are from Western Europe (Finland, Denmark, Switzerland, Iceland, Norway, Netherlands, Sweden, Austria, Luxemburg, United Kingdom, Ireland, Germany, and Belgium), 4/20 (20%) of the countries are from North America and ANZ (New Zealand, Canada, Australia, and United States), and the remaining 3/20 (15%) countries are from Latin America and the Caribbean (Costa Rica), the Middle East and North Africa (Israel), and Central and Eastern Europe (Czech Republic). 
+
+### Top countries during COVID-19 (2020)
+
+```{r fig5, warning=FALSE, fig.cap="Top 20 Happiest Countries (2020)", message = FALSE, echo=FALSE, fig.width=10, fig.height=5, out.width='70%', fig.align="center"}
+data %>% arrange(desc(`Happiness Score - 2021`)) %>%
+  head(20)%>%ggplot(aes(`Happiness Score - 2021`,reorder(`Country`,`Happiness Score - 2021`),fill=`Region`))+
+  geom_col()+ geom_text(aes(label = `Happiness Score - 2021`), position=position_stack(vjust=0.5),color="black",size=3)+
+  theme_classic()+theme(axis.title.x = element_blank(),axis.title.y = element_blank())+
+  scale_fill_brewer(palette = "Spectral")+ggtitle("Top 20 Happiest Countries (2020)")
+```
+
+From (Figure \@ref(fig:fig5)), in the year 2020, 13/20 (65%) of the countries are from Western Europe (Finland, Denmark, Switzerland, Iceland, Netherlands, Norway, Sweden, Luxemburg, Austria, Germany, Ireland, United Kingdom, and Belgium), 4/20 (20%) of the countries are from North America and ANZ (New Zealand, Australia, Canada, and United States),  and the remaining 3/20 (15%) countries are from Latin America and the Caribbean (Costa Rica), the Middle East and North Africa (Israel), and Central and Eastern Europe (Czech Republic). 
+
+##  Bottom Happiest Countries
+### Bottom countries - pre-COVID-19 (2019)
+
+```{r fig6, warning=FALSE, fig.cap="Bottom 20 Happiest Countries (2019)", message = FALSE, echo=FALSE, fig.width=10, fig.height=5, out.width='70%', fig.align="center"}
+data %>% arrange(desc(`Happiness Score - 2020`)) %>%
+  tail(20) %>% ggplot(aes(`Happiness Score - 2020`,reorder(`Country`,`Happiness Score - 2020`),fill=`Region`)) +
+  geom_col() + geom_text(aes(label = `Happiness Score - 2020`), position=position_stack(vjust=0.5),color="black",size=3) +
+  theme_classic() + theme(axis.title.x = element_blank(),axis.title.y = element_blank()) +
+  scale_fill_brewer(palette = "Spectral") + ggtitle("Bottom 20 Happiest Countries (2019)")
+```
+
+From (Figure \@ref(fig:fig6)), in the year 2019, 14/20 (70%) of the countries are from Sub-Saharan Africa (Swaziland, Comoros,  Togo, Ethiopia, Madagascar, Sierra Leone, Burundi, Zambia, Lesotho, Malawi, Botswana, Tanzania, Rwanda, and Zimbabwe), 2/20 (10%) of the countries are from the Middle East and North Africa (Egypt and Yemen), 2/20 (10%) of the countries are from South Asia (India and Afghanistan), and the remaining 2/10 (10%) are from Southeast Asia (Myanmar) and Latin America and the Caribbean (Haiti). 
+
+### Bottom countries during COVID-19 (2020)
+
+```{r fig7, warning=FALSE, fig.cap="Bottom 20 Happiest Countries (2020)", message = FALSE, echo=FALSE, fig.width=10, fig.height=5, out.width='70%', fig.align="center"}
+data %>% arrange(desc(`Happiness Score - 2021`)) %>%
+  tail(20)%>%ggplot(aes(`Happiness Score - 2021`,reorder(`Country`,`Happiness Score - 2021`),fill=`Region`))+
+  geom_col()+ geom_text(aes(label = `Happiness Score - 2021`), position=position_stack(vjust=0.5),color="black",size=3)+
+  theme_classic()+theme(axis.title.x = element_blank(),axis.title.y = element_blank())+
+  scale_fill_brewer(palette = "Spectral")+ggtitle("Bottom 20 Happiest Countries (2020)")
+```
+
+From (Figure \@ref(fig:fig7)), in the year 2020, 15/20 (75%) of the countries are from Sub-Saharan Africa (Swaziland, Comoros, Ethiopia, Mauritania, Madagascar, Togo, Zambia, Sierra Leone, Burundi, Tanzania, Malawi, Lesotho, Botswana, Rwanda, and Zimbabwe), 2/20 (10%) of the countries are from the Middle East and North Africa (Egypt and Yemen), 2/20 (10%) of the countries are from South Asia (India and Afghanistan), and the remaining 1/20 (5%) of the country is from Latin America and Caribbean (Haiti).   
+
+##  World Map - Happiness 
+```{r fig8, warning=FALSE, echo=FALSE, message=FALSE, results= FALSE, fig.cap="World Map for Happiness - 2019", message = FALSE, echo=FALSE,  fig.width=8, fig.height=4,fig.align="center"}
+
+mapdata <- data %>% select(Country, `Happiness Score - 2020`, `Happiness Score - 2021`)
+jcm <- joinCountryData2Map(mapdata, joinCode="NAME", nameJoinColumn="Country")
+mapCountryData(jcm, nameColumnToPlot='Happiness Score - 2020', mapTitle="World Map for Happiness - 2019",colourPalette="negpos8")
+```
+```{r fig9, warning=FALSE, fig.cap="World Map for Happiness - 2020", message = FALSE, echo=FALSE,  fig.width=8, fig.height=4, fig.align="center"}
+
+mapCountryData(jcm, nameColumnToPlot='Happiness Score - 2021', mapTitle="World Map for Happiness - 2020",colourPalette="negpos8")
+
+```
+(Figure \@ref(fig:fig8)) and (Figure \@ref(fig:fig9)) show us the world happiness score on a map. These visualizations help us understand which parts of the world are most happy and least happy. These maps were made using R package rworldmap [@south_2016]. There is also an interactive shiny app version of these figures which was created using R package leaflet [@citeLeaflet].  The shiny app can be found on: [https://isfandyar-virani.shinyapps.io/happinessreportmap](https://isfandyar-virani.shinyapps.io/happinessreportmap)
+
+
+##  Effect on Happiness by variables of interest
+
+```{r, include = FALSE}
+
+#========= Effect of GDP per capita on Happiness (2020 & 2021) ==========
+
+
+graphGDP2020 <- data %>% ggplot(aes(`Happiness Score - 2020`, `Logged GDP per capita - 2020`)) + geom_point(aes(color=`Region`), size = 3) + xlab("Happiness Score") + ylab("Logged GDP per Capita") +
+  scale_color_brewer(palette = "Spectral")+ggtitle("Effect of GDP per Capita on Happiness (2019)") + theme_classic()
+
+graphGDP2021 <- data %>% ggplot(aes(`Happiness Score - 2021`, `Logged GDP per capita - 2021`)) + geom_point(aes(color=`Region`), size = 3) + xlab("Happiness Score") + ylab("Logged GDP per Capita") +
+  scale_color_brewer(palette = "Spectral")+ggtitle("Effect of GDP per Capita on Happiness (2020)") + theme_classic()
+
+#========== Effect of Social Support on Happiness (2020 & 2021) =========
+
+graphSocialSupport2020 <- data %>% ggplot(aes(`Happiness Score - 2020`, `Social Support - 2020`)) + geom_point(aes(color=`Region`), size = 3) + xlab("Happiness Score") + ylab("Social Support") +
+  scale_color_brewer(palette="Spectral")+ggtitle("Effect of Social Support on Happiness (2019)") + theme_classic()
+
+graphSocialSupport2021 <- data %>% ggplot(aes(`Happiness Score - 2021`, `Social Support - 2021`)) + geom_point(aes(color=`Region`), size = 3) + xlab("Happiness Score") + ylab("Social Support") +
+  scale_color_brewer(palette = "Spectral")+ggtitle("Effect of Social Support on Happiness (2020)") + theme_classic()
+
+#=========== Effect of Freedom on Happiness (2020 & 2021) ==========
+
+graphFreedom2020 <- data %>% ggplot(aes(`Happiness Score - 2020`, `Freedom to make life choices - 2020`)) + geom_point(aes(color=`Region`), size = 3) + xlab("Happiness Score") + ylab("Freedom") +
+  scale_color_brewer(palette="Spectral")+ggtitle("Effect of Freedom to make life choices on Happiness (2019)") + theme_classic()
+
+graphFreedom2021 <- data %>% ggplot(aes(`Happiness Score - 2021`, `Freedom to make life choices - 2021`)) + geom_point(aes(color=`Region`), size = 3) + xlab("Happiness Score") + ylab("Freedom") +
+  scale_color_brewer(palette="Spectral")+ggtitle("Effect of Freedom to make life choices on Happiness (2020)") + theme_classic()
+
+
+#========== Effect of Healthy life expectancy on Happiness (2020 & 2021) =========
+
+graphHealth2020 <- data %>% ggplot(aes(`Happiness Score - 2020`, `Healthy Life Expectancy - 2020`)) + geom_point(aes(color=`Region`), size = 3) + xlab("Happiness Score") + ylab("Healthy life expectancy") +
+  scale_color_brewer(palette="Spectral")+ggtitle("Effect of Healthy life expectancy on Happiness (2019)") + theme_classic()
+
+graphHealth2021 <- data %>% ggplot(aes(`Happiness Score - 2021`, `Healthy Life Expectancy - 2021`)) + geom_point(aes(color=`Region`), size = 3) + xlab("Happiness Score") + ylab("Healthy life expectancy") +
+  scale_color_brewer(palette = "Spectral")+ggtitle("Effect of Healthy life expectancy on Happiness (2020)") + theme_classic()
+
+#=========== Effect of Generosity on Happiness (2020 & 2021) ==========
+
+graphGenerosity2020 <- data %>% ggplot(aes(`Happiness Score - 2020`, `Generosity - 2020`)) + geom_point(aes(color=`Region`), size = 3) + xlab("Happiness Score") + ylab("Generosity") +
+  scale_color_brewer(palette="Spectral")+ggtitle("Effect of Generosity on Happiness (2019)") + theme_classic()
+
+graphGenerosity2021 <- data %>% ggplot(aes(`Happiness Score - 2021`, `Generosity - 2021`)) + geom_point(aes(color=`Region`), size = 3) + xlab("Happiness Score") + ylab("Generosity") +
+  scale_color_brewer(palette="Spectral")+ggtitle("Effect of Generosity on Happiness (2020)") + theme_classic()
+
+#=========== Effect of Perceptions of Corruption on Happiness (2020 & 2021) ==========
+
+graphCorruption2020 <- data %>% ggplot(aes(`Happiness Score - 2020`, `Perceptions of Corruption - 2020`)) + geom_point(aes(color=`Region`), size = 3) + xlab("Happiness Score") + ylab("Perceptions of Corruption") +
+  scale_color_brewer(palette="Spectral")+ggtitle("Effect of Perceptions of Corruption on Happiness (2019)") + theme_classic()
+
+graphCorruption2021 <- data %>% ggplot(aes(`Happiness Score - 2021`, `Perceptions of Corruption - 2021`)) + geom_point(aes(color=`Region`), size = 3) + xlab("Happiness Score") + ylab("Perceptions of Corruption") +
+  scale_color_brewer(palette="Spectral")+ggtitle("Effect of Perceptions of Corruption on Happiness (2020)") + theme_classic()
+
+
+```
+
+```{r fig10, warning=FALSE, fig.cap="Effect on Happiness by variables of interest", message = FALSE, echo=FALSE, fig.width=14, fig.height=7, out.width='100%', fig.align="center"}
+grid.arrange(graphGDP2020, graphGDP2021, graphSocialSupport2020, graphSocialSupport2021, ncol=2, nrow =2)
+```
+```{r fig11, warning=FALSE, fig.cap="Effect on Happiness by variables of interest", message = FALSE, echo=FALSE, fig.width=14, fig.height=7, out.width='100%', fig.align="center"}
+grid.arrange(graphFreedom2020,graphFreedom2021,graphHealth2020,graphHealth2021, ncol=2, nrow =2)
+```
+
+```{r fig12, warning=FALSE, fig.cap="Effect on Happiness by variables of interest", message = FALSE, echo=FALSE, fig.width=14, fig.height=7, out.width='100%', fig.align="center"}
+grid.arrange(graphGenerosity2020,graphGenerosity2021,graphCorruption2020,graphCorruption2020, ncol=2, nrow =2)
+```
+
+From (Figure \@ref(fig:fig10)), (Figure \@ref(fig:fig11)), and (Figure \@ref(fig:fig12)) also show that Happiness is positively correlated with Logged GDP per capita, Social Support, Healthy Life Expectancy, and Freedom to make life choices, and has a negative correlation with the Perception of corruption in 2019 and 2020. These figures also show that Happiness Score does not have a correlation with Generosity. 
+
+## Correlations
+
+```{r fig13, warning=FALSE, fig.cap="Correlations plot - 2019", message = FALSE, echo=FALSE, fig.width=8, fig.height=6, out.width='100%', fig.align="center"}
+
+cor(data %>% mutate('Happiness Score' = `Happiness Score - 2020`, 
+                'Logged GDP per capita' = `Logged GDP per capita - 2020`, 
+                'Social Support' = `Social Support - 2020`, 
+                'Healthy Life Expectancy' = `Healthy Life Expectancy - 2020`,
+                'Freedom to make life choices' = `Freedom to make life choices - 2020`, 
+                'Generosity' = `Generosity - 2020`,
+                'Perceptions of Corruption' = `Perceptions of Corruption - 2020`) %>%
+  select(`Happiness Score`,`Logged GDP per capita`, `Social Support` , `Healthy Life Expectancy`,
+         `Freedom to make life choices`, `Generosity`, `Perceptions of Corruption`)) %>%
+  corrplot(method = 'number', type="upper", tl.cex = .7, tl.col = 'black' ,
+           cl.ratio = 0.2, tl.srt = 25, col = colorRampPalette(c("darkorange", "white", "steelblue"))(20))
+mtext("Correlation Plot - Year 2019", at=1, line=-20, cex=1)
+```
+
+```{r fig14, warning=FALSE, fig.cap="Correlations plot - 2020", message = FALSE, echo=FALSE, fig.width=8, fig.height=6, out.width='100%', fig.align="center"}
+
+cor(data %>% mutate('Happiness Score' = `Happiness Score - 2021`, 
+                    'Logged GDP per capita' = `Logged GDP per capita - 2021`, 
+                    'Social Support' = `Social Support - 2021`, 
+                    'Healthy Life Expectancy' = `Healthy Life Expectancy - 2021`,
+                    'Freedom to make life choices' = `Freedom to make life choices - 2021`, 
+                    'Generosity' = `Generosity - 2021`,
+                    'Perceptions of Corruption' = `Perceptions of Corruption - 2021`) %>%
+      select(`Happiness Score`,`Logged GDP per capita`, `Social Support` , `Healthy Life Expectancy`,
+             `Freedom to make life choices`, `Generosity`, `Perceptions of Corruption`)) %>%
+  corrplot(method = 'number', type="upper", tl.cex = .7, tl.col = 'black' ,
+           cl.ratio = 0.2, tl.srt = 25, col = colorRampPalette(c("darkorange", "white", "steelblue"))(20))
+mtext("Correlation Plot - Year 2020", at=1, line=-20, cex=1)
+```
+From (Figure \@ref(fig:fig13)) & (Figure \@ref(fig:fig14)), Happiness has a strong positive correlation with Logged GDP per capita, Social Support, Healthy Life Expectancy, and Freedom to make life choices, and has a negative correlation with the Perception of corruption in 2019 and 2020. These figures also show that Happiness Score does not have a correlation with Generosity. 
+
+
+## Multiple Linear Regression
+(Table \@ref(tab:tab4))  & (Table \@ref(tab:tab5)) were created to explain happiness score by different factors. These tables were created using R package modelsummary [@citeModelSummary]. 
+### Happiness Score from variables of interest
+
+```{r, include=FALSE}
+Model2020 <- lm(`Happiness Score - 2020` ~ `Logged GDP per capita - 2020` + `Social Support - 2020` +
+                  `Healthy Life Expectancy - 2020`+`Freedom to make life choices - 2020` + 
+                  `Generosity - 2020`+ `Perceptions of Corruption - 2020`,
+     data = data)
+
+
+names(Model2020$coefficients) <- c('(Intercept)','Logged GDP per capita','Social Support','Healthy Life Expectancy', 'Freedom to make life choices', 'Generosity', 'Perceptions of Corruption')
+
+
+
+Model2021 <- lm(`Happiness Score - 2021` ~ `Logged GDP per capita - 2021` + `Social Support - 2021` +
+                  `Healthy Life Expectancy - 2021`+`Freedom to make life choices - 2021` + 
+                  `Generosity - 2021`+ `Perceptions of Corruption - 2021`,
+                data = data)
+names(Model2021$coefficients) <- c('(Intercept)','Logged GDP per capita','Social Support','Healthy Life Expectancy', 'Freedom to make life choices', 'Generosity', 'Perceptions of Corruption')
+
+Model2_2020 <- lm(`Happiness Score - 2020` ~ Region,
+                 data = data)
+Model2_2021 <- lm(`Happiness Score - 2021` ~ Region,
+                 data = data)
+
+
+
+```
+
+
+```{r tab4, warning=FALSE, message = FALSE, echo=FALSE, fig.width=5, fig.height=5}
+
+modelsummary(list("Model 1-1 - Year 2019" = Model2020,
+                  "Model 1-2 - Year 2020" = Model2021),
+             fmt = 2,
+             title = "Explaining Happiness Score from variables of interest",
+             stars = TRUE,  bold = T) 
+```
+
+In (Table \@ref(tab:tab4)) , the models show a relationship between happiness score and logged GDP per capita, social support, healthy life expectancy, freedom to make life choices, generosity, and perceptions of corruption. There is a p-value > 0.05 for every value other than generosity in both models, which makes sense when we look at our correlation table in (Figure \@ref(fig:fig13)) & (Figure \@ref(fig:fig14)).
+### Happiness score from regions
+
+```{r tab5, warning=FALSE, message = FALSE, echo=FALSE, fig.width=5, fig.height=5}
+
+modelsummary(list("Model 2-1 - Year 2019" = Model2_2020,
+                  "Model 2-2 - Year 2020" = Model2_2021),
+             fmt = 2,
+             title = "Explaining happiness score from regions",
+             stars = TRUE,  bold = T)
+```
+
+In (Table \@ref(tab:tab5)) , the models show a relationship between happiness scores and different regions (Commonwealth of Independent States, East Asia, Latin America and Caribbean, Middle East and North Africa, North America and ANZ, and South Asia). There is a p-value > 0.05 for Region Commonwealth of Independent States, Middle East and North Africa, America and ANZ, and South America for both models. 
+
+# Discussion
+
+World Happiness has been altered during COVID-19 as the COVID-19 pandemic has altered and taken the lives of many around the world. Looking at our data analysis, I find some key insights that can help policymakers around the world to take appropriate actions to increase happiness in the countries.
+
+## Happiness Score by Regions & Countries
+
+From (Figure \@ref(fig:fig1)) and (Figure \@ref(fig:fig2)), regions with developed western countries such as North America and ANZ (Australia and New Zealand) and Western Europe tend to have higher Happiness Scores compared to other regions. Meanwhile, Sub-Saharan Africa and South Asia tend to have developing countries and had lower Happiness Scores. Looking at different survey data, British Economist, Angus Deaton of Princeton University, has said “the citizens of richer countries are on average more satisfied with their lives than the citizens of poorer countries [and] unlike the earlier studies, the effect of national income on national happiness is somewhat stronger in the rich countries than in the poor countries.” [@stokes_2010]. This can be seen in our figures (Figure \@ref(fig:fig4)) & (Figure \@ref(fig:fig7)) as best performing countries have generally higher GDP. Also, this can be examined from our models in (Table \@ref(tab:tab5)) which shows that North America and ANZ, and Western Europe have a positive influence on Happiness Scores and Africa, the Middle East, Asia and the Commonwealth of Independent States have a negative influence on Happiness Scores. 
+
+In (Table \@ref(tab:tab3)) regions changed in happiness from before and during the COVID-19 pandemic. Furthermore, from (Figure \@ref(fig:fig3)) I find that 54% of the countries reported having an increase in happiness during the pandemic. This contradicts articles such as [@cheong_kim_koh_2020]. I believe that the increased financial relief government support during the COVID-19 pandemic (i.e, CERB) helped citizens. This financial assistance can also be looked at as a test pilot for UBI (Universal basic income), which has influenced happiness among citizens [@li_2021].  
+
+An interesting finding is that nordic countries are ranked highest (with Finland being #1) in happiness. This shows that weather doesn’t have an influence on overall happiness [@bello_2022] which is a contradiction the perception of winter depression caused by winter weather [@cox_2017].  
+
+## Happiness Score explained by variables of interest
+From (section 4.2), (Figure \@ref(fig:fig13)), and (Figure \@ref(fig:fig14)), I can see that Logged GDP per capita, Social Support, Healthy Life Expectancy, and Freedom to make life choices have a positive impact on Happiness Score, while increased Perception of corruption has a negative impact on Happiness score. I also noticed that Generosity has no impact on happiness score. This is also confirmed by our model in (Table \@ref(tab:tab4)). 
+
+The common theme is that countries with money tend to have higher life expectancy due to improved lifestyles, social support, and freedom. They also have less corruption as officials (police and government employees) are paid properly. This is why I am seeing countries with higher GDPs with more happiness compared to poor countries. 
+We should have a holistic view of happiness and should look at happiness not just by money, but also other factors even though they are heavily related in most cases. The models in (Table \@ref(tab:tab4)) highlighted factors that explained happiness scores and the conclusion is the same as our correlation matrix in (Figure \@ref(fig:fig13)), (Figure \@ref(fig:fig14)), and (section 4.2)
+
+
+## Weakness and next steps
+
+One of the main weaknesses in analyzing world happiness is the lack of data. The dataset only have data from 148 countries, out of 195 total countries in the world [@worldmeters]. This lack of data is making our analysis weaker.Another weakness is that the data is lacking features that can give us more of a holistic way to look at happiness. This perceived happiness from our analysis shows that wealth and features related to it are highly correlated with happiness. However, in [@easterlin_2014], the author claims long-term trends in happiness and income are not related, and our finding is short term. This could be tested by doing a time series analysis over a decade or two, but I only used data from 2019 & 2020.  Hence, in the next steps, I will look at data from a longer period and will get data from other factors such as education, pollution, and other factors to examine happiness scores in a more holistic view. 
+
+\newpage
+
+# References
